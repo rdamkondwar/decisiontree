@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Attribute {
+public abstract class Attribute {
     String name;
 
     public Attribute(String name) {
@@ -66,6 +66,14 @@ class NumericAttribute extends Attribute {
     public NumericAttribute(String name, String dataType) {
         super(name);
         this.dataType = dataType.trim();
+    }
+
+    public Double getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(Double threshold) {
+        this.threshold = threshold;
     }
 
     @Override

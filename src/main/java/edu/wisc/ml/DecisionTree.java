@@ -30,6 +30,26 @@ public class DecisionTree {
 
     }
 
+    public double infoGainForFeature(DataSet ds, int attrIdx, Object attrValue) {
+
+        int pos = 0, neg = 0;
+        for (DataInstance di : ds.getDataInstances()) {
+            if (di.getAttrValueByIndex(attrIdx).equals(attrValue)) {
+                if (di.isOutputPositive()) {
+                    pos++;
+                }
+                else {
+                    neg++;
+                }
+
+            }
+        }
+
+        int total = pos+neg;
+        double infoGain = -(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total);
+        return infoGain;
+    }
+
     public double infoGain(DataSet ds) {
         int pos = 0, neg = 0;
         for (DataInstance di : ds.getDataInstances()) {

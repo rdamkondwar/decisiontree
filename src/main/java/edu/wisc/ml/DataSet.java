@@ -1,5 +1,7 @@
 package edu.wisc.ml;
 
+import javafx.scene.chart.PieChart;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -86,6 +88,33 @@ public class DataSet {
 
         processData(data);
         System.out.println(dataInstances.size());
+        calculateThresholds();
+    }
+
+    public void calculateThresholds() {
+        int index = 0;
+        for (Attribute attr : this.attributes) {
+            if(attr instanceof NumericAttribute) {
+                calculateThresholdForIndex(index);
+            }
+            index++;
+        }
+    }
+
+    private void calculateThresholdForIndex(int idx) {
+        double min = (Double) this.dataInstances.get(0).getAttrValueByIndex(idx);
+        double max = (Double) this.dataInstances.get(0).getAttrValueByIndex(idx);
+
+        for(DataInstance di : this.dataInstances) {
+            if (min > (Double)di.getAttrValueByIndex(idx)) {
+                min = (Double)di.getAttrValueByIndex(idx);
+            }
+            if (max < (Double)di.getAttrValueByIndex(idx)) {
+                max = (Double)di.getAttrValueByIndex(idx);
+            }
+        }
+
+        ((NumericAttribute)this.attributes.get(idx)).setThreshold((min+max)/2);
     }
 
     public String getRelationName() {

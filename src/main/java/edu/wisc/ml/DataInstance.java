@@ -39,6 +39,10 @@ class DataInstance {
         }
     }
 
+    public Object getAttrValueByIndex(int idx) {
+        return values.get(idx);
+    }
+
     public boolean isOutputPositive() {
         if(this.outputVal.equals("positive")) {
             return true;
