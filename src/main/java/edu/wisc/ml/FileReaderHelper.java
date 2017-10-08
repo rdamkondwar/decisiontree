@@ -29,20 +29,4 @@ public class FileReaderHelper {
 
         return result;
     }
-
-    public static void main(String []args) {
-        FileReaderHelper fr = new FileReaderHelper();
-        try {
-            List<String> result = fr.readData("/Users/rohitsd/workspace/machinelearning/diabetes_train.arff");
-            System.out.println("Total lines = "+result.size());
-
-            DecisionTree dt = new DecisionTree();
-            dt.addData(result);
-
-            System.out.println("Post size = "+result.size());
-        }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
 }

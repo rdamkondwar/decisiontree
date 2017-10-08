@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class Attribute {
+public class Attribute {
     String name;
 
     public Attribute(String name) {

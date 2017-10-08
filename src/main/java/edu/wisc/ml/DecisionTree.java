@@ -1,93 +1,53 @@
 package edu.wisc.ml;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
 
 public class DecisionTree {
 
-    private String relationName;
-    private List<Attribute> attributes;
-    private Attribute output;
-    private List<DataInstance> dataInstances;
+    private DataSet ds;
 
-    public DecisionTree() {
-        attributes = new ArrayList<Attribute>();
-        dataInstances = new ArrayList<DataInstance>();
+
+    public static void main(String []args) {
+        FileReaderHelper fr = new FileReaderHelper();
+        List<String> result = null;
+        try {
+             result = fr.readData("/Users/rohitsd/workspace/machinelearning/diabetes_train.arff");
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        DataSet ds = new DataSet();
+        ds.addData(result);
+
+        // Train DT.
+        DecisionTree dt = new DecisionTree();
+        System.out.println(dt.infoGain(ds));
+        int pos = 9, neg = 5, total = 14;
+        // double infoGain = -(pos*1.0/total)*log2(pos, total) -(neg*1.0/total)*log2(neg, total);
+        // System.out.println("infogain = "+infoGain + " log2="+log2(pos,total));
+
+
     }
 
-    void processData(List<String> data) {
-        System.out.println("Debug: in processData: "+data.size());
-        for(String line : data) {
-            // System.out.println(line);
-            DataInstance di = new DataInstance(line, attributes, output);
-            this.dataInstances.add(di);
-            System.out.println(di);
+    public double infoGain(DataSet ds) {
+        int pos = 0, neg = 0;
+        for (DataInstance di : ds.getDataInstances()) {
+           if (di.isOutputPositive()) {
+               pos++;
+           }
+           else {
+               neg++;
+           }
         }
 
+        int total = pos+neg;
+        double infoGain = -(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total);
+        return infoGain;
     }
 
-    Attribute processAttribute(String name, String dataType) {
-        if (dataType.equals("real") || dataType.equals("numeric")) {
-            return new NumericAttribute(name, dataType);
-        }
-        else if (name.equals("'class'")) {
-            // System.out.println("class");
-            return new OutputClass(name, dataType);
-        }
-        else if (dataType.endsWith("}") && dataType.startsWith("{")) {
-            return new NominalAttribute(name, dataType);
-        }
-
-        else {
-            // Ignore for now.
-            return null;
-        }
+    static double log2(double num, double den) {
+        double val = (1.0*num)/(1.0*den);
+        return (Math.log(val))/Math.log(2.0);
     }
-
-    public void addData(List<String> data) {
-        Iterator<String> iter = data.iterator();
-
-        while(iter.hasNext()) {
-            String line = iter.next();
-
-            if (line.startsWith("%")) {
-                // Ignore comment.
-            }
-            else if (line.startsWith("@relation")) {
-                // Add relation name
-                String [] splits = line.split(" ", 3);
-                this.relationName = splits[1];
-            }
-            else if (line.startsWith("@attribute")) {
-                String [] splits = line.split(" ", 3);
-                Attribute attr = processAttribute(splits[1], splits[2]);
-                // System.out.println("Debug: "+splits[1]+" "+splits[2]);
-                if (!(attr instanceof OutputClass)) {
-                    this.attributes.add(attr);
-                }
-                else{
-                    this.output = attr;
-                }
-            }
-            else if(line.startsWith("@data")) {
-                iter.remove();
-                break;
-            }
-            iter.remove();
-        }
-
-        System.out.println("Adding data instances");
-        System.out.println("Size = "+data.size());
-        for(Attribute attr: this.attributes) {
-            System.out.println(attr);
-        }
-        System.out.println("output = "+this.output);
-
-        processData(data);
-        System.out.println(dataInstances.size());
-    }
-
-
 }

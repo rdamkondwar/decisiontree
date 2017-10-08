@@ -39,6 +39,13 @@ class DataInstance {
         }
     }
 
+    public boolean isOutputPositive() {
+        if(this.outputVal.equals("positive")) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return "DataInstance{" +
