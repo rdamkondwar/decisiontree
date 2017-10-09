@@ -89,7 +89,7 @@ public class DataSet {
         // System.out.println("output = "+this.output);
 
         processData(data);
-        System.out.println(dataInstances.size());
+        // System.out.println(dataInstances.size());
         // calculateThresholds();
         // createBranches();
     }

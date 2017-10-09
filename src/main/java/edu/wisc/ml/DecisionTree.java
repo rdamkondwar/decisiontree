@@ -1,7 +1,5 @@
 package edu.wisc.ml;
 
-import org.w3c.dom.Attr;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +10,8 @@ public class DecisionTree {
     boolean isLeafNode = false;
     Object outputLabel = null;
     List<DecisionTree> branches = new ArrayList<DecisionTree>();
+    int pos = 0;
+    int neg = 0;
 
     public static void main(String []args) throws CloneNotSupportedException {
         FileReaderHelper fr = new FileReaderHelper();
@@ -26,17 +26,52 @@ public class DecisionTree {
         DataSet ds = new DataSet();
         ds.addData(result);
 
+        // System.out.println("Size of dataset = "+ds.getDataInstances().size());
         // Train DT.
         DecisionTree dt = new DecisionTree(ds, 2, "negative");
         // System.out.println(dt.infoGain(ds));
+        dt.printDecisionTree(0);
+
+        // System.out.println("Done");
 
         // Double entropy = dt.infoGain(ds);
         // Attribute attr = dt.findBestSplitCandidate(ds, entropy);
         // System.out.println("Total gain = " + dt.infoGain(ds));
     }
 
+    public void printDecisionTree(int depth) {
+        // System.out.println("Num of branches="+this.branches.size());
+        /*if (this.isLeafNode) {
+            String format = "%n%"+5*depth+"s";
+            // System.out.println(this.outputLabel);
+        }*/
+        // else {
+        for (int i=0; i < this.branches.size(); i++) {
+            String branchName = this.feature.getBranches().get(i);
+            // System.out.println(this.feature.getName() + " = " + branchName);
+
+            DecisionTree dt = this.branches.get(i);
+
+                StringBuilder format = new StringBuilder();
+            for (int j = 0; j < depth; j++) {
+                format.append("|    ");
+            }
+            if (dt.isLeafNode) {
+                format.append(" %s [%d %d]: %s%n");
+                System.out.printf(format.toString(), branchName, dt.neg, dt.pos, dt.outputLabel);
+            }
+            else {
+                format.append(" %s [%d %d]%n");
+                System.out.printf(format.toString(), branchName, dt.neg, dt.pos);
+            }
+
+            dt.printDecisionTree(depth+1);
+        }
+        // }
+    }
+
     private boolean checkIfAllLabelsBelongToSameClass(DataSet ds) {
-        int pos=0, neg=0;
+        /*int pos=0, neg=0;
         for (DataInstance di : ds.getDataInstances()) {
             if (di.isOutputPositive()) {
                 pos++;
@@ -44,8 +79,8 @@ public class DecisionTree {
             else {
                 neg++;
             }
-        }
-        if (pos == 0 || neg == 0) return true;
+        }*/
+        if (this.pos == 0 || this.neg == 0) return true;
         return false;
     }
 
@@ -55,7 +90,7 @@ public class DecisionTree {
             return defaultLabel;
         }
 
-        int pos=0, neg=0;
+        /*int pos=0, neg=0;
         for (DataInstance di : ds.getDataInstances()) {
             if (di.isOutputPositive()) {
                 pos++;
@@ -63,15 +98,15 @@ public class DecisionTree {
             else {
                 neg++;
             }
-        }
+        }*/
         /*if (pos == 0 || neg == 0) {
             // Detected Stop condition.
             return diList.get(0).outputVal;
         }*/
-        if (pos > neg) {
+        if (this.pos > this.neg) {
             return "positive";
         }
-        else if (neg > pos) {
+        else if (this.neg > this.pos) {
             return "negative";
         }
 
@@ -81,11 +116,25 @@ public class DecisionTree {
     public DecisionTree(DataSet ds, int m, Object defaultLabel) throws CloneNotSupportedException {
         // Evaluate Stopping criteria
 
+        ds.calculateThresholds();
+        ds.createBranches();
+
+        for (DataInstance di : ds.getDataInstances()) {
+            if (di.isOutputPositive()) {
+                this.pos++;
+            }
+            else {
+                this.neg++;
+            }
+        }
+
         // Check if instances are lesser than m
         if (ds.getDataInstances().size() < m) {
             // return new DecisionTree(true, getMajorityOutputClass(ds, defaultLabel));
+
             this.isLeafNode = true;
             this.outputLabel = getMajorityOutputClass(ds, defaultLabel);
+            // System.out.println("Debug: "+this.outputLabel);
             return;
         }
 
@@ -94,6 +143,7 @@ public class DecisionTree {
             // return new DecisionTree(true, ds.getDataInstances().get(0).outputVal);
             this.isLeafNode = true;
             this.outputLabel = ds.getDataInstances().get(0).outputVal;
+            // System.out.println("Debug: "+this.outputLabel);
             return;
         }
 
@@ -102,11 +152,13 @@ public class DecisionTree {
             // return new DecisionTree(true, getMajorityOutputClass(ds, defaultLabel));
             this.isLeafNode = true;
             this.outputLabel = getMajorityOutputClass(ds, defaultLabel);
+            // System.out.println("Debug: "+this.outputLabel);
             return;
         }
 
         Double entropy = infoGain(ds);
         this.feature = findBestSplitCandidate(ds, entropy);
+
         if (null == this.feature) {
             // No positive gain.
             // return new DecisionTree(true, defaultLabel);
@@ -114,6 +166,7 @@ public class DecisionTree {
             this.outputLabel = defaultLabel;
             return;
         }
+        // System.out.println("Selected feature="+this.feature.getName());
 
         for(String branch : this.feature.getBranches()) {
             // Filtered DS, m, defaultLabel
@@ -130,9 +183,6 @@ public class DecisionTree {
                 filteredDS.addDataInstance(di);
             }
         }
-
-        filteredDS.calculateThresholds();
-        filteredDS.createBranches();
 
         List<Attribute> attrList = new ArrayList<Attribute>();
         for (Attribute attr : ds.getAttributes()) {
@@ -197,7 +247,7 @@ public class DecisionTree {
             }
 
             int total = pos + neg;
-            System.out.println("Debug: name=" + attr.getName() + " total="+total+" size="+ds.getDataInstances().size()+" gain_for_branch:"+branch+ " = "+(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
+            // System.out.println("Debug: name=" + attr.getName() + " total="+total+" size="+ds.getDataInstances().size()+" gain_for_branch:"+branch+ " = "+(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
             infoGain += (((1.0*total)/ds.getDataInstances().size())*(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
         }
 
