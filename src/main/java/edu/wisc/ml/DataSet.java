@@ -1,7 +1,5 @@
 package edu.wisc.ml;
 
-import javafx.scene.chart.PieChart;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +15,10 @@ public class DataSet {
     public DataSet() {
         attributes = new ArrayList<Attribute>();
         dataInstances = new ArrayList<DataInstance>();
+    }
+
+    public void addDataInstance(DataInstance di) {
+        this.dataInstances.add(di);
     }
 
     void processData(List<String> data) {
@@ -88,7 +90,8 @@ public class DataSet {
 
         processData(data);
         System.out.println(dataInstances.size());
-        calculateThresholds();
+        // calculateThresholds();
+        // createBranches();
     }
 
     public void calculateThresholds() {
@@ -98,6 +101,12 @@ public class DataSet {
                 calculateThresholdForIndex(index);
             }
             index++;
+        }
+    }
+
+    public void createBranches() {
+        for (Attribute attr : this.attributes) {
+            attr.createBranches();
         }
     }
 

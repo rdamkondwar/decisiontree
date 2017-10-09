@@ -4,11 +4,38 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class Attribute {
+public abstract class Attribute implements Cloneable {
     String name;
+
+    List<String> branches = new ArrayList<String>();
 
     public Attribute(String name) {
         this.name = name.replaceAll("'", "");
+    }
+
+    public abstract void createBranches();
+
+    public abstract boolean satisfyBranch(String branch, Object value);
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<String> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(List<String> branches) {
+        this.branches = branches;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
     @Override
@@ -24,8 +51,17 @@ class OutputClass extends Attribute {
     public OutputClass(String name, String valueString) {
         super(name);
         String[] nominalValuesArr = valueString.replace("{", "").replace("}", "").split(",");
-        this.pos = nominalValuesArr[0].trim();
-        this.neg = nominalValuesArr[1].trim();
+        this.neg = nominalValuesArr[0].trim();
+        this.pos = nominalValuesArr[1].trim();
+    }
+
+    @Override
+    public void createBranches() {
+    }
+
+    @Override
+    public boolean satisfyBranch(String branch, Object value) {
+        return false;
     }
 
     @Override
@@ -41,6 +77,11 @@ class OutputClass extends Attribute {
 class NominalAttribute extends Attribute {
     List<String> values;
 
+    public NominalAttribute(String name, List<String> values) {
+        super(name);
+        this.values = values;
+    }
+
     public NominalAttribute(String name, String valueString) {
         super(name);
         String[] nominalValuesArr = valueString.replace("{", "").replace("}", "").split(",");
@@ -48,6 +89,27 @@ class NominalAttribute extends Attribute {
         for(String val : nominalValuesArr) {
             this.values.add(val.trim());
         }
+    }
+
+    @Override
+    public boolean satisfyBranch(String branch, Object value) {
+        return branch.equals(value);
+    }
+
+    @Override
+    public void createBranches() {
+        for(String v : values) {
+            this.branches.add(this.name+" = "+v);
+        }
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        List<String> newValues = new ArrayList<String>();
+        for(String v : this.values) {
+            newValues.add(v);
+        }
+        return new NominalAttribute(this.name, newValues);
     }
 
     @Override
@@ -68,12 +130,39 @@ class NumericAttribute extends Attribute {
         this.dataType = dataType.trim();
     }
 
+    @Override
+    public boolean satisfyBranch(String branch, Object value) {
+        if (branch.contains(" <= ")) {
+            if ((Double) value <= threshold) {
+                return true;
+            }
+        }
+        else {
+            if ((Double) value > threshold) {
+                // System.out.println("Debug: branch="+branch+ " value="+value);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void createBranches() {
+        this.branches.add(this.name + " <= " + threshold);
+        this.branches.add(this.name + " > " + threshold);
+    }
+
     public Double getThreshold() {
         return threshold;
     }
 
     public void setThreshold(Double threshold) {
         this.threshold = threshold;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return new NumericAttribute(this.name, this.dataType);
     }
 
     @Override
