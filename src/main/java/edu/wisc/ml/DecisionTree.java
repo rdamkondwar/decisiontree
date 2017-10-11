@@ -18,16 +18,22 @@ public class DecisionTree {
     public static void main(String []args) throws CloneNotSupportedException, Exception {
         FileReaderHelper fr = new FileReaderHelper();
         List<String> result = null;
+        List<String> testSetLines = null;
         try {
              //result = fr.readData("/Users/rohitsd/workspace/machinelearning/diabetes_train.arff");
             result = fr.readData(args[0]);
+            testSetLines = fr.readData(args[1]);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
+            System.exit(1);
         }
 
         DataSet ds = new DataSet();
         ds.addData(result);
+
+        DataSet testSet = new DataSet();
+        testSet.addData(testSetLines);
 
         // System.out.println("Size of dataset = "+ds.getDataInstances().size());
         // Train DT.
@@ -35,11 +41,48 @@ public class DecisionTree {
         // System.out.println(dt.infoGain(ds));
         dt.printDecisionTree(0);
 
+        System.out.println("<Predictions for the Test Set Instances>");
+        int printIdx = 1;
+        int total = 0, correctPredictions = 0;
+        for (DataInstance di : testSet.getDataInstances()) {
+            String predicted = dt.parseDecisionTree(di);
+            System.out.println(printIdx+": Actual: "+di.outputVal+" Predicted: "+predicted);
+            printIdx++;
+            total++;
+            if (di.outputVal.equals(predicted)) {
+                correctPredictions++;
+            }
+            // break;
+        }
+
+        System.out.println("Number of correctly classified: "+correctPredictions+" Total number of test instances: "+total);
+
         // System.out.println("Done");
 
         // Double entropy = dt.infoGain(ds);
         // Attribute attr = dt.findBestSplitCandidate(ds, entropy);
         // System.out.println("Total gain = " + dt.infoGain(ds));
+    }
+
+    public String parseDecisionTree(DataInstance di) {
+        for (int i=0; i < this.feature.branches.size(); i++) {
+            int branchIdx = 0;
+            for (String fBranch : this.feature.branches) {
+                if (this.feature.satisfyBranch(fBranch, di.getAttrValueByIndex(this.feature.index))) {
+                    // System.out.println("fBranch="+fBranch+ " di="+di + " index="+this.feature.index);
+                    DecisionTree dt = this.branches.get(branchIdx);
+
+                    if (dt.isLeafNode) {
+                        return (String) dt.outputLabel;
+                    } else {
+                        return dt.parseDecisionTree(di);
+                    }
+                }
+                branchIdx++;
+            }
+        }
+
+        return null;
     }
 
     public void printDecisionTree(int depth) {
