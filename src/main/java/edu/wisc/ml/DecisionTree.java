@@ -15,11 +15,12 @@ public class DecisionTree {
     int pos = 0;
     int neg = 0;
 
-    public static void main(String []args) throws CloneNotSupportedException {
+    public static void main(String []args) throws CloneNotSupportedException, Exception {
         FileReaderHelper fr = new FileReaderHelper();
         List<String> result = null;
         try {
-             result = fr.readData("/Users/rohitsd/workspace/machinelearning/heart_train.arff");
+             //result = fr.readData("/Users/rohitsd/workspace/machinelearning/diabetes_train.arff");
+            result = fr.readData(args[0]);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -56,14 +57,14 @@ public class DecisionTree {
             StringBuilder format = new StringBuilder();
 
             for (int j = 0; j < depth; j++) {
-                format.append("|    ");
+                format.append("|\t");
             }
             if (dt.isLeafNode) {
-                format.append(" %s [%d %d]: %s%n");
+                format.append("%s [%d %d]: %s%n");
                 System.out.printf(format.toString(), branchName, dt.neg, dt.pos, dt.outputLabel);
             }
             else {
-                format.append(" %s [%d %d]%n");
+                format.append("%s [%d %d]%n");
                 System.out.printf(format.toString(), branchName, dt.neg, dt.pos);
             }
 
@@ -115,7 +116,7 @@ public class DecisionTree {
         return defaultLabel;
     }
 
-    public DecisionTree(DataSet ds, int m, Object defaultLabel) throws CloneNotSupportedException {
+    public DecisionTree(DataSet ds, int m, Object defaultLabel) throws CloneNotSupportedException, Exception {
         // Evaluate Stopping criteria
 
         ds.calculateThresholds();
@@ -173,6 +174,7 @@ public class DecisionTree {
         for(String branch : this.feature.getBranches()) {
             // Filtered DS, m, defaultLabel
             DataSet filteredDS = getFilteredDataSetForChildBranch(ds, branch);
+            // Thread.sleep(100000);
             this.branches.add(new DecisionTree(filteredDS, m, defaultLabel));
         }
     }
@@ -189,7 +191,8 @@ public class DecisionTree {
 
         List<Attribute> attrList = new ArrayList<Attribute>();
         for (Attribute attr : ds.getAttributes()) {
-            if (!attr.getName().equals(this.feature.getName())) {
+            // if (!attr.getName().equals(this.feature.getName())) {
+            if (!(attr.index == this.feature.index)) {
                 attrList.add((Attribute) attr.clone());
             }
         }

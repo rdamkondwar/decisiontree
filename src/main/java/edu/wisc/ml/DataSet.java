@@ -167,27 +167,26 @@ public class DataSet {
         // Map<Double, Tuple> thresholdMap = new TreeMap<Double, Tuple>();
         Map.Entry prevEntry = null;
         for (Map.Entry entry : data.entrySet()) {
-            if (prevEntry == null) {
-                prevEntry = entry;
-                continue;
-            }
-            Tuple t1 = (Tuple)entry.getValue();
-            Tuple t2 = (Tuple)entry.getValue();
+            // System.out.println("Debug: "+entry.getKey());
+            if (prevEntry != null) {
+                Tuple t1 = (Tuple) prevEntry.getValue();
+                Tuple t2 = (Tuple) entry.getValue();
 
-            if (t2.neg == t1.neg && t1.neg == 0) {
-                // Do nothing.
+                if (t2.neg == t1.neg && t1.neg == 0) {
+                    // Do nothing.
+                } else if (t2.pos == t1.pos && t1.pos == 0) {
+                    // Do nothing.
+                } else {
+                    // System.out.println("attr = " + idx +"tr = "+((Double)entry.getKey() + (Double)prevEntry.getKey())/2.0);
+                    thresholds.add(((Double) entry.getKey() + (Double) prevEntry.getKey()) / 2.0);
+                    // thresholdMap.put(((Double)entry.getKey() + (Double)prevEntry.getKey())/2.0, t1);
+                }
             }
-            else if(t2.pos == t1.pos && t1.pos == 0) {
-                // Do nothing.
-            }
-            else {
-                // System.out.println("attr = " + idx +"tr = "+((Double)entry.getKey() + (Double)prevEntry.getKey())/2.0);
-                thresholds.add(((Double)entry.getKey() + (Double)prevEntry.getKey())/2.0);
-                // thresholdMap.put(((Double)entry.getKey() + (Double)prevEntry.getKey())/2.0, t1);
-            }
+            prevEntry = entry;
         }
 
         // if (thresholds.size() == 0) System.out.println("Debug: size = 0"+thresholds);
+        // System.out.println("Debug: "+thresholds);
         return thresholds;
 
         /*Double bestThreshold = 0.0;

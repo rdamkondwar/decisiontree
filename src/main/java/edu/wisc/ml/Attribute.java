@@ -160,6 +160,7 @@ class NumericAttribute extends Attribute {
 
     @Override
     public void createBranches() {
+        this.branches = new ArrayList<String>();
         this.branches.add(this.name + " <= " + threshold);
         this.branches.add(this.name + " > " + threshold);
     }
