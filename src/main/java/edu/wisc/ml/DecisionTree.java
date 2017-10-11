@@ -2,6 +2,8 @@ package edu.wisc.ml;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class DecisionTree {
 
@@ -17,7 +19,7 @@ public class DecisionTree {
         FileReaderHelper fr = new FileReaderHelper();
         List<String> result = null;
         try {
-             result = fr.readData("/Users/rohitsd/workspace/machinelearning/diabetes_train.arff");
+             result = fr.readData("/Users/rohitsd/workspace/machinelearning/heart_train.arff");
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -32,7 +34,7 @@ public class DecisionTree {
         // System.out.println(dt.infoGain(ds));
         dt.printDecisionTree(0);
 
-        // System.out.println("Done");
+        System.out.println("Done");
 
         // Double entropy = dt.infoGain(ds);
         // Attribute attr = dt.findBestSplitCandidate(ds, entropy);
@@ -51,8 +53,8 @@ public class DecisionTree {
             // System.out.println(this.feature.getName() + " = " + branchName);
 
             DecisionTree dt = this.branches.get(i);
+            StringBuilder format = new StringBuilder();
 
-                StringBuilder format = new StringBuilder();
             for (int j = 0; j < depth; j++) {
                 format.append("|    ");
             }
@@ -176,7 +178,8 @@ public class DecisionTree {
     }
 
     private DataSet getFilteredDataSetForChildBranch(DataSet ds, String branch) throws CloneNotSupportedException {
-        int attrIdx = getAttrIndexByName(ds, this.feature.getName());
+        // int attrIdx = getAttrIndexByName(ds, this.feature.getName());
+        int attrIdx = this.feature.index;
         DataSet filteredDS = new DataSet();
         for (DataInstance di : ds.getDataInstances()) {
             if (this.feature.satisfyBranch(branch, di.getAttrValueByIndex(attrIdx))) {
@@ -195,24 +198,15 @@ public class DecisionTree {
         return filteredDS;
     }
 
-    private int getAttrIndexByName(DataSet ds, String name) {
-        int idx = 0;
-        for(Attribute a : ds.getAttributes()) {
-            if(a.getName().equals(name)) {
-                return idx;
-            }
-            idx++;
-        }
-        return -1;
-    }
-
     public Attribute findBestSplitCandidate(DataSet ds, Double entropy) {
         Attribute attr = null;
         Double maxInfoGain = Double.MIN_VALUE;
 
+        // System.out.println("Debug: attr_size = "+ds.getAttributes().size());
         int idx = 0;
         for (Attribute a : ds.getAttributes()) {
-            Double infoGain = entropy - infoGainForFeature(ds, idx);
+            // System.out.println("Debug: attr = "+attr);
+            Double infoGain = entropy - infoGainForFeature(ds, a);
             if (maxInfoGain < infoGain) {
                 maxInfoGain = infoGain;
                 attr = a;
@@ -225,22 +219,71 @@ public class DecisionTree {
         return attr;
     }
 
-    public double infoGainForFeature(DataSet ds, int attrIdx) {
+    public double infoGainForFeature(DataSet ds, Attribute attr) {
 
-        Attribute attr = ds.getAttributes().get(attrIdx);
+        // Attribute attr = ds.getAttributes().get(attrIdx);
+        Double infoGain = Double.MAX_VALUE;
+        Double bestThreshold = null;
+
+        if (attr instanceof NumericAttribute) {
+            Double infoGainGainForSplit;
+            // System.out.println("Length = "+((NumericAttribute) attr).getCandidateThresholds().size());
+            for (Double tr : ((NumericAttribute) attr).getCandidateThresholds()) {
+                // System.out.println("attr = "+attr + " tr="+tr);
+                ((NumericAttribute) attr).setThreshold(tr);
+                attr.createBranches();
+
+                infoGainGainForSplit = infoGainCalculation(ds, attr, attr.index);
+                if (infoGainGainForSplit < infoGain) {
+                    infoGain = infoGainGainForSplit;
+                    bestThreshold = tr;
+                }
+            }
+
+            // System.out.println("attr = "+attr + " besttr="+bestThreshold);
+            ((NumericAttribute) attr).setThreshold(bestThreshold);
+            attr.createBranches();
+        }
+        else {
+            // Iterate on each branch
+            infoGain = infoGainCalculation(ds, attr, attr.index);
+
+            /*for (String branch : attr.getBranches()) {
+                int pos = 0, neg = 0;
+                // Iterate on each DI
+                for (DataInstance di : ds.getDataInstances()) {
+                    // Filter each DI
+                    if(attr.satisfyBranch(branch, di.getAttrValueByIndex(attrIdx))) {
+                        if (di.isOutputPositive()) {
+                            pos++;
+                        }
+                        else {
+                            neg++;
+                        }
+                    }
+                }
+
+                int total = pos + neg;
+                // System.out.println("Debug: name=" + attr.getName() + " total="+total+" size="+ds.getDataInstances().size()+" gain_for_branch:"+branch+ " = "+(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
+                infoGain += (((1.0*total)/ds.getDataInstances().size())*(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
+            }*/
+        }
+
+        return infoGain;
+    }
+
+    private double infoGainCalculation(DataSet ds, Attribute attr, int attrIdx) {
         Double infoGain = 0.0;
 
-        // Iterate on each branch
         for (String branch : attr.getBranches()) {
             int pos = 0, neg = 0;
             // Iterate on each DI
             for (DataInstance di : ds.getDataInstances()) {
                 // Filter each DI
-                if(attr.satisfyBranch(branch, di.getAttrValueByIndex(attrIdx))) {
+                if (attr.satisfyBranch(branch, di.getAttrValueByIndex(attrIdx))) {
                     if (di.isOutputPositive()) {
                         pos++;
-                    }
-                    else {
+                    } else {
                         neg++;
                     }
                 }
@@ -248,7 +291,7 @@ public class DecisionTree {
 
             int total = pos + neg;
             // System.out.println("Debug: name=" + attr.getName() + " total="+total+" size="+ds.getDataInstances().size()+" gain_for_branch:"+branch+ " = "+(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
-            infoGain += (((1.0*total)/ds.getDataInstances().size())*(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
+            infoGain += (((1.0 * total) / ds.getDataInstances().size()) * (-(pos * 1.0 / total) * log2(pos, total) - (neg * 1.0 / total) * log2(neg, total)));
         }
 
         return infoGain;
