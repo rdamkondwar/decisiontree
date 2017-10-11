@@ -35,7 +35,7 @@ public class DecisionTree {
         // System.out.println(dt.infoGain(ds));
         dt.printDecisionTree(0);
 
-        System.out.println("Done");
+        // System.out.println("Done");
 
         // Double entropy = dt.infoGain(ds);
         // Attribute attr = dt.findBestSplitCandidate(ds, entropy);
@@ -192,9 +192,9 @@ public class DecisionTree {
         List<Attribute> attrList = new ArrayList<Attribute>();
         for (Attribute attr : ds.getAttributes()) {
             // if (!attr.getName().equals(this.feature.getName())) {
-            if (!(attr.index == this.feature.index)) {
-                attrList.add((Attribute) attr.clone());
-            }
+            //if (!(attr.index == this.feature.index)) {
+            attrList.add((Attribute) attr.clone());
+            //}
         }
 
         filteredDS.setAttributes(attrList);
@@ -210,12 +210,15 @@ public class DecisionTree {
         for (Attribute a : ds.getAttributes()) {
             // System.out.println("Debug: attr = "+attr);
             Double infoGain = entropy - infoGainForFeature(ds, a);
+            // System.out.println("Debug: attr="+a+ " ="+infoGain);
             if (maxInfoGain < infoGain) {
                 maxInfoGain = infoGain;
                 attr = a;
             }
             idx++;
         }
+
+
 
         if (maxInfoGain <= 0.0) return null;
 
@@ -293,9 +296,19 @@ public class DecisionTree {
             }
 
             int total = pos + neg;
-            // System.out.println("Debug: name=" + attr.getName() + " total="+total+" size="+ds.getDataInstances().size()+" gain_for_branch:"+branch+ " = "+(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
-            infoGain += (((1.0 * total) / ds.getDataInstances().size()) * (-(pos * 1.0 / total) * log2(pos, total) - (neg * 1.0 / total) * log2(neg, total)));
+            if (total > 0) {
+                // System.out.println("Debug: name=" + attr.getName() + " total="+total+" size="+ds.getDataInstances().size()+" gain_for_branch:"+branch+ " = "+(-(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total)));
+                infoGain += (((1.0 * total) / ds.getDataInstances().size()) * (-(pos * 1.0 / total) * log2(pos, total) - (neg * 1.0 / total) * log2(neg, total)));
+            }
+
+            if (infoGain.equals(Double.NaN)) {
+                System.out.println("Problem !"+attr + " infogain="+infoGain + " total="+total + " pos="+pos);
+            }
         }
+
+
+
+        // System.out.println("IGC="+attr+ " calc="+infoGain);
 
         return infoGain;
     }
@@ -312,11 +325,14 @@ public class DecisionTree {
         }
 
         int total = pos+neg;
+        if(total == 0) return 0.0;
+
         double infoGain = -(pos*1.0/total)*log2(pos, total) - (neg*1.0/total)*log2(neg, total);
         return infoGain;
     }
 
     static double log2(double num, double den) {
+        if(num == 0.0 || den == 0.0) return 0.0;
         double val = (1.0*num)/(1.0*den);
         return (Math.log(val))/Math.log(2.0);
     }

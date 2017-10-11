@@ -104,7 +104,7 @@ class NominalAttribute extends Attribute {
 
     @Override
     public boolean satisfyBranch(String branch, Object value) {
-        return branch.equals(value);
+        return branch.equals(this.name + " = " +value);
     }
 
     @Override
@@ -161,8 +161,8 @@ class NumericAttribute extends Attribute {
     @Override
     public void createBranches() {
         this.branches = new ArrayList<String>();
-        this.branches.add(this.name + " <= " + threshold);
-        this.branches.add(this.name + " > " + threshold);
+        this.branches.add(this.name + " <= " + String.format("%.6f", threshold));
+        this.branches.add(this.name + " > " + String.format("%.6f", threshold));
     }
 
     public Double getThreshold() {
