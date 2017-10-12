@@ -19,10 +19,12 @@ public class DecisionTree {
         FileReaderHelper fr = new FileReaderHelper();
         List<String> result = null;
         List<String> testSetLines = null;
+        Integer m = null;
         try {
              //result = fr.readData("/Users/rohitsd/workspace/machinelearning/diabetes_train.arff");
             result = fr.readData(args[0]);
             testSetLines = fr.readData(args[1]);
+            m = Integer.parseInt(args[2]);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -37,7 +39,7 @@ public class DecisionTree {
 
         // System.out.println("Size of dataset = "+ds.getDataInstances().size());
         // Train DT.
-        DecisionTree dt = new DecisionTree(ds, 2, "negative");
+        DecisionTree dt = new DecisionTree(ds, m, "negative");
         // System.out.println(dt.infoGain(ds));
         dt.printDecisionTree(0);
 
