@@ -1,0 +1,6 @@
+Steps to build the project:
+    mvn clean package
+
+Directory structure:
+    src/main/java/edu/wisc/ml/*.java
+    pom.xml -> File to build the project
