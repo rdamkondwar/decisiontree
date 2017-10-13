@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$#" -ne 3 ]; then
+    echo "usage: ./dt-learn -cp algorithms-1.0-SNAPSHOT.jar edu.wisc.ml.DecisionTree <path_to_train_data> <path_to_test_data> <m_value>"
+    exit 1
+fi
+
+java -cp algorithms-1.0-SNAPSHOT.jar edu.wisc.ml.DecisionTree $1 $2 $3
