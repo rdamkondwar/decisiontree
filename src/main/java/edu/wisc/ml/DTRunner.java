@@ -20,6 +20,8 @@ public class DTRunner {
             result.add(dataInstance);
         }
 
+        // System.out.println("Debug: datasize:"+result.size());
+
         return result;
     }
 
