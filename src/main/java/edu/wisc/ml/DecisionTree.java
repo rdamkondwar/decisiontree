@@ -2,8 +2,6 @@ package edu.wisc.ml;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class DecisionTree {
 
@@ -176,6 +174,11 @@ public class DecisionTree {
             }
         }
 
+        Object dominatingLabel = "negative";
+        if (this.pos > this.neg) {
+            dominatingLabel = "positive";
+        }
+
         // Check if instances are lesser than m
         if (ds.getDataInstances().size() < m) {
             // return new DecisionTree(true, getMajorityOutputClass(ds, defaultLabel));
@@ -220,7 +223,7 @@ public class DecisionTree {
             // Filtered DS, m, defaultLabel
             DataSet filteredDS = getFilteredDataSetForChildBranch(ds, branch);
             // Thread.sleep(100000);
-            this.branches.add(new DecisionTree(filteredDS, m, defaultLabel));
+            this.branches.add(new DecisionTree(filteredDS, m, dominatingLabel));
         }
     }
 
